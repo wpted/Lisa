@@ -51,10 +51,10 @@ func New(tt LexicalType, literal string) *Token {
 	}
 }
 
-// LookUpReservedWords checks the reservedWordsTable to see whether the given identifier is a reserved word.
+// LookUpReservedWord checks the reservedWordsTable to see whether the given identifier is a reserved word.
 // If ident is a reserved word, return the Lexical Type of the token.
 // If it isn't, return IDENT.
-func LookUpReservedWords(ident string) LexicalType {
+func LookUpReservedWord(ident string) LexicalType {
 	lt, ok := reservedWordsTable[ident]
 	if !ok {
 		return IDENT

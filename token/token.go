@@ -6,8 +6,13 @@ const (
 	// EOF means 'End Of File', which tells our parser later on that it can stop.
 	EOF = "EOF"
 
-	IDENT = "IDENT"
-	INT   = "INT"
+	// IDENT represents the lexical type of variable or function names.
+	IDENT    = "IDENT"
+	VAR      = "VAR"
+	FUNCTION = "FUNCTION"
+
+	// INT is the integer type.
+	INT = "INT"
 
 	ASSIGN = "="
 	PLUS   = "+"
@@ -19,22 +24,19 @@ const (
 	RPAREN = ")"
 	LBRACE = "{"
 	RBRACE = "}"
-
-	FUNCTION = "FUNCTION"
-	VAR      = "VAR"
 )
 
-type TokenType string
+type LexicalType string
 
 // Token is the transformation result of lexing source code.
 type Token struct {
-	Type TokenType
+	Type LexicalType
 	// Literal is the parsed value of a token.
 	Literal string
 }
 
 // New creates a new *token.
-func New(tt TokenType, literal string) *Token {
+func New(tt LexicalType, literal string) *Token {
 	return &Token{
 		Type:    tt,
 		Literal: literal,

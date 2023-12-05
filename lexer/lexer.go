@@ -15,7 +15,7 @@ type Lexer struct {
 	// readPosition is the current reading position in input (the next character, one after current char ch).
 	readPosition int
 	// ch is the current character under examination.
-	// TODO: While using type byte supports ASCII, UTF-8 is a must (change byte to rune and read it bytes wide).
+	// TODO: While using type byte supports ASCII (which can br compared as integers), UTF-8 is a must (change byte to rune and read it bytes wide).
 	ch byte
 }
 
@@ -55,9 +55,11 @@ func (l *Lexer) NextToken() *token.Token {
 	case 0:
 		tok = token.New(token.EOF, "")
 	default:
-		// This is where the lexical reader encounters a letter
-		if tok.Literal == l.readIdentifier() {
-
+		// Not one of the recognized characters.
+		// This is where the lexical reader encounters a letter.
+		if isLetter(l.ch) {
+			tok.Literal = l.readIdentifier()
+			// TODO: What is the type of the read literal?
 		} else {
 			tok = token.New(token.ILLEGAL, string(l.ch))
 		}
@@ -69,6 +71,7 @@ func (l *Lexer) NextToken() *token.Token {
 }
 
 // readChar gives us the next character and advance our position in the input string.
+// The current character is stored in ch.
 // It checks whether it reached the end of the input.
 // If we reached the end of the input, we set l.ch to 0, otherwise l.ch is set to the next character.
 func (l *Lexer) readChar() {
@@ -87,9 +90,11 @@ func (l *Lexer) readChar() {
 	l.readPosition++
 }
 
+// readIdentifier reads in an identifier and advances our lexers' positions until it encounters a non-letter character.
 func (l *Lexer) readIdentifier() string {
 	position := l.position
 
+	// Check whether l.ch is a letter until reaches some character that isn't(possibly a white space or a delimiter).
 	for isLetter(l.ch) {
 		// Move l.position by reading through the characters one by one.
 		l.readChar()
@@ -99,6 +104,10 @@ func (l *Lexer) readIdentifier() string {
 }
 
 func isLetter(ch byte) bool {
-	// For ASCII
+	// For ASCII, letter a-z lies between 97~122 and A-Z between 65~90.
+	// We treat "_" as letter(ASCII: 95), indicating we allow both Camel Case and Snake Case for names of variables or functions.
+	if (65 <= ch && ch <= 90) || (97 <= ch && ch <= 122) || ch == 95 {
+		return true
+	}
 	return false
 }

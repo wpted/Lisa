@@ -19,6 +19,7 @@ type Lexer struct {
 	ch byte
 }
 
+// New creates a new pointer of Lexer.
 func New(data string) *Lexer {
 	newLexer := &Lexer{
 		input:        data,
@@ -33,8 +34,14 @@ func New(data string) *Lexer {
 	return newLexer
 }
 
+// NextToken parses the input and transform it into a defined Token type.
+// The function should be called repeatedly.
 func (l *Lexer) NextToken() *token.Token {
 	var tok *token.Token
+
+	// Skip white space before analyzing.
+	l.skipWhiteSpace()
+
 	switch l.ch {
 	case '=':
 		tok = token.New(token.ASSIGN, string(l.ch))
@@ -58,19 +65,31 @@ func (l *Lexer) NextToken() *token.Token {
 		// Not one of the recognized characters.
 		// This is where the lexical reader encounters a letter.
 		if isLetter(l.ch) {
-			tok.Literal = l.readIdentifier()
-			// TODO: What is the type of the read literal?
+			// Move the pointer and get the current identifier.
+			identifier := l.readIdentifier()
+
+			// Determine the type of the reading literal.
+			lt := token.LookUpReservedWord(identifier)
+			tok = token.New(lt, identifier)
+		} else if isDigit(l.ch) {
+			number := l.readNumber()
+			tok = token.New(token.INT, number)
 		} else {
 			tok = token.New(token.ILLEGAL, string(l.ch))
 		}
 	}
-	// After checking token, move the lexical pointer to the next position.
-	l.readChar()
 
-	return tok
+	// After checking token, move the lexical pointer to the next position if it's a reserved word, or when type is token.IDENT, token.INT.
+	if tok.Type == token.VAR || tok.Type == token.FUNCTION || tok.Type == token.RETURN || tok.Type == token.IDENT || tok.Type == token.INT {
+		// Early exit here is necessary since the loop for readIdentifier or readNumber jumps one step forward, thus we don't need another jump below.
+		return tok
+	} else {
+		l.readChar()
+		return tok
+	}
 }
 
-// readChar gives us the next character and advance our position in the input string.
+// readChar gives us the next character and advances our position in the input string.
 // The current character is stored in ch.
 // It checks whether it reached the end of the input.
 // If we reached the end of the input, we set l.ch to 0, otherwise l.ch is set to the next character.
@@ -99,15 +118,50 @@ func (l *Lexer) readIdentifier() string {
 		// Move l.position by reading through the characters one by one.
 		l.readChar()
 	}
-
-	return l.input[position:l.position]
+	currIdent := l.input[position:l.position]
+	return currIdent
 }
 
+// readNumber reads in a number and advances our lexers' positions until it encounters a non-number character.
+func (l *Lexer) readNumber() string {
+	position := l.position
+	for isDigit(l.ch) {
+		l.readChar()
+	}
+	currNumStr := l.input[position:l.position]
+	return currNumStr
+}
+
+// isLetter determines whether an input character is a letter.
 func isLetter(ch byte) bool {
-	// For ASCII, letter a-z lies between 97~122 and A-Z between 65~90.
+	// For ASCII, letter a-z lies within [97, 122] and A-Z within [65, 90].
 	// We treat "_" as letter(ASCII: 95), indicating we allow both Camel Case and Snake Case for names of variables or functions.
 	if (65 <= ch && ch <= 90) || (97 <= ch && ch <= 122) || ch == 95 {
 		return true
 	}
 	return false
+}
+
+// isDigit determines whether an input character is a number.
+func isDigit(ch byte) bool {
+	// For ASCII, letter 0-9 lies between [48, 57].
+	if 48 <= ch && ch <= 57 {
+		return true
+	}
+	return false
+}
+
+// skipWhiteSpace skips the encounter white space and advances the lexers pointer forward until it encounters a non-white-space character.
+func (l *Lexer) skipWhiteSpace() {
+	white := map[byte]struct{}{
+		' ':  {},
+		'\t': {},
+		'\n': {},
+		'\r': {},
+	}
+	_, ok := white[l.ch]
+	for ok {
+		l.readChar()
+		_, ok = white[l.ch]
+	}
 }

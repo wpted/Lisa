@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-func TestNew(t *testing.T) {
+func Test_New(t *testing.T) {
 	testInput := "test"
 	l := New("test")
 	if l.input != testInput {
@@ -54,6 +54,7 @@ func TestLexer_readIdentifier(t *testing.T) {
 	}{
 		{"test 32", "test"},
 		{"32", ""},
+		{"test_abc 32", "test_abc"},
 	}
 	var lex *Lexer
 	for i, tc := range testCases {
@@ -201,7 +202,7 @@ func TestLexer_NextToken(t *testing.T) {
 				{expectedType: token.IDENT, expectedLiteral: "x"},
 				{expectedType: token.COMMA, expectedLiteral: ","},
 				{expectedType: token.IDENT, expectedLiteral: "y"},
-				{expectedType: token.LPAREN, expectedLiteral: ")"},
+				{expectedType: token.RPAREN, expectedLiteral: ")"},
 				{expectedType: token.LBRACE, expectedLiteral: "{"},
 				{expectedType: token.RETURN, expectedLiteral: "return"},
 				{expectedType: token.IDENT, expectedLiteral: "x"},
@@ -219,7 +220,7 @@ func TestLexer_NextToken(t *testing.T) {
 				{expectedType: token.IDENT, expectedLiteral: "five"},
 				{expectedType: token.COMMA, expectedLiteral: ","},
 				{expectedType: token.IDENT, expectedLiteral: "ten"},
-				{expectedType: token.LPAREN, expectedLiteral: ")"},
+				{expectedType: token.RPAREN, expectedLiteral: ")"},
 				{expectedType: token.SEMICOLON, expectedLiteral: ";"},
 			},
 		},

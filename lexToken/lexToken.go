@@ -29,6 +29,13 @@ const (
 
 type LexicalType string
 
+// reservedWordsTable is the table for reserved words.
+var reservedWordsTable = map[string]LexicalType{
+	"fn":     FUNCTION,
+	"var":    VAR,
+	"return": RETURN,
+}
+
 // Token is the transformation result of lexing source code.
 type Token struct {
 	Type LexicalType
@@ -42,4 +49,15 @@ func New(tt LexicalType, literal string) *Token {
 		Type:    tt,
 		Literal: literal,
 	}
+}
+
+// LookUpReservedWords checks the reservedWordsTable to see whether the given identifier is a reserved word.
+// If ident is a reserved word, return the Lexical Type of the token.
+// If it isn't, return IDENT.
+func LookUpReservedWords(ident string) LexicalType {
+	lt, ok := reservedWordsTable[ident]
+	if !ok {
+		return IDENT
+	}
+	return lt
 }

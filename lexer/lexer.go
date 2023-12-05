@@ -1,7 +1,7 @@
 package lexer
 
 import (
-	"Lisa/token"
+	token "Lisa/lexToken"
 )
 
 // Lexer is an instance that is responsible for taking source code as input and output the tokens that represent it.
@@ -54,6 +54,13 @@ func (l *Lexer) NextToken() *token.Token {
 		tok = token.New(token.COMMA, string(l.ch))
 	case 0:
 		tok = token.New(token.EOF, "")
+	default:
+		// This is where the lexical reader encounters a letter
+		if tok.Literal == l.readIdentifier() {
+
+		} else {
+			tok = token.New(token.ILLEGAL, string(l.ch))
+		}
 	}
 	// After checking token, move the lexical pointer to the next position.
 	l.readChar()
@@ -78,4 +85,20 @@ func (l *Lexer) readChar() {
 	l.position = l.readPosition
 	// Point the read position to the next character in the input.
 	l.readPosition++
+}
+
+func (l *Lexer) readIdentifier() string {
+	position := l.position
+
+	for isLetter(l.ch) {
+		// Move l.position by reading through the characters one by one.
+		l.readChar()
+	}
+
+	return l.input[position:l.position]
+}
+
+func isLetter(ch byte) bool {
+	// For ASCII
+	return false
 }

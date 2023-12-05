@@ -1,4 +1,4 @@
-package token
+package lexToken
 
 const (
 	// ILLEGAL signifies a token/character we don't know illegal.

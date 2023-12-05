@@ -1,7 +1,7 @@
 package lexer
 
 import (
-	"Lisa/token"
+	token "Lisa/lexToken"
 	"testing"
 )
 

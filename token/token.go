@@ -10,6 +10,7 @@ const (
 	IDENT    = "IDENT"
 	VAR      = "VAR"
 	FUNCTION = "FUNCTION"
+	RETURN   = "RETURN"
 
 	// INT is the integer type.
 	INT = "INT"

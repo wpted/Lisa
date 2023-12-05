@@ -32,3 +32,11 @@ type Token struct {
 	// Literal is the parsed value of a token.
 	Literal string
 }
+
+// New creates a new *token.
+func New(tt TokenType, literal string) *Token {
+	return &Token{
+		Type:    tt,
+		Literal: literal,
+	}
+}

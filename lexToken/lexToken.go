@@ -7,10 +7,15 @@ const (
 	EOF = "EOF"
 
 	// IDENT represents the lexical type of variable or function names.
-	IDENT    = "IDENT"
+	IDENT = "IDENT"
+
 	VAR      = "VAR"
 	FUNCTION = "FUNCTION"
+	IF       = "IF"
+	ELSE     = "ELSE"
 	RETURN   = "RETURN"
+	TRUE     = "TRUE"
+	FALSE    = "FALSE"
 
 	// INT is the integer type.
 	INT = "INT"
@@ -41,6 +46,10 @@ var reservedWordsTable = map[string]LexicalType{
 	"fn":     FUNCTION,
 	"var":    VAR,
 	"return": RETURN,
+	"true":   TRUE,
+	"false":  FALSE,
+	"if":     IF,
+	"else":   ELSE,
 }
 
 // Token is the transformation result of lexing source code.
@@ -62,10 +71,10 @@ func New(tt LexicalType, literal string) *Token {
 // LookUpReservedWord checks the reservedWordsTable to see whether the given identifier is a reserved word.
 // If ident is a reserved word, return the Lexical Type of the token.
 // If it isn't, return IDENT.
-func LookUpReservedWord(ident string) LexicalType {
-	lt, ok := reservedWordsTable[ident]
-	if !ok {
-		return IDENT
+func LookUpReservedWord(ident string) (lt LexicalType, isReserved bool) {
+	lt, isReserved = reservedWordsTable[ident]
+	if !isReserved {
+		return IDENT, isReserved
 	}
-	return lt
+	return lt, isReserved
 }

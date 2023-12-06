@@ -157,15 +157,15 @@ func TestLexer_NextToken(t *testing.T) {
 				expectedType    token.LexicalType
 				expectedLiteral string
 			}{
-				{token.ASSIGN, "="},
-				{token.PLUS, "+"},
-				{token.LPAREN, "("},
-				{token.RPAREN, ")"},
-				{token.LBRACE, "{"},
-				{token.RBRACE, "}"},
-				{token.COMMA, ","},
-				{token.SEMICOLON, ";"},
-				{token.EOF, ""},
+				{expectedType: token.ASSIGN, expectedLiteral: "="},
+				{expectedType: token.PLUS, expectedLiteral: "+"},
+				{expectedType: token.LPAREN, expectedLiteral: "("},
+				{expectedType: token.RPAREN, expectedLiteral: ")"},
+				{expectedType: token.LBRACE, expectedLiteral: "{"},
+				{expectedType: token.RBRACE, expectedLiteral: "}"},
+				{expectedType: token.COMMA, expectedLiteral: ","},
+				{expectedType: token.SEMICOLON, expectedLiteral: ";"},
+				{expectedType: token.EOF, expectedLiteral: ""},
 			},
 		},
 		{
@@ -222,6 +222,42 @@ func TestLexer_NextToken(t *testing.T) {
 				{expectedType: token.IDENT, expectedLiteral: "ten"},
 				{expectedType: token.RPAREN, expectedLiteral: ")"},
 				{expectedType: token.SEMICOLON, expectedLiteral: ";"},
+				{expectedType: token.EOF, expectedLiteral: ""},
+			},
+		},
+		{
+			// even though !-/*5 doesn't make sense, the lexer still has to parse it into token and let other mechanism check if the logic is correct.
+			input: `var five = 5;
+					!-/*5^; 
+   					5 < 10 > 5;`,
+			expectedParsedResults: []struct {
+				expectedType    token.LexicalType
+				expectedLiteral string
+			}{
+				// var five = 5;
+				{expectedType: token.VAR, expectedLiteral: "var"},
+				{expectedType: token.IDENT, expectedLiteral: "five"},
+				{expectedType: token.ASSIGN, expectedLiteral: "="},
+				{expectedType: token.INT, expectedLiteral: "5"},
+				{expectedType: token.SEMICOLON, expectedLiteral: ";"},
+
+				// !-/*5^;
+				{expectedType: token.EXCLAMATION, expectedLiteral: "!"},
+				{expectedType: token.MINUS, expectedLiteral: "-"},
+				{expectedType: token.SLASH, expectedLiteral: "/"},
+				{expectedType: token.ASTERISK, expectedLiteral: "*"},
+				{expectedType: token.INT, expectedLiteral: "5"},
+				{expectedType: token.CARET, expectedLiteral: "^"},
+				{expectedType: token.SEMICOLON, expectedLiteral: ";"},
+
+				// 5 < 10 > 5;
+				{expectedType: token.INT, expectedLiteral: "5"},
+				{expectedType: token.LESSTHAN, expectedLiteral: "<"},
+				{expectedType: token.INT, expectedLiteral: "10"},
+				{expectedType: token.GREATERTHAN, expectedLiteral: ">"},
+				{expectedType: token.INT, expectedLiteral: "5"},
+				{expectedType: token.SEMICOLON, expectedLiteral: ";"},
+				{expectedType: token.EOF, expectedLiteral: ""},
 			},
 		},
 	}

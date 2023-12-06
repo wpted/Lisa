@@ -13,7 +13,7 @@ func Test_LookUpReservedWord(t *testing.T) {
 	}
 
 	for i, tc := range testCases {
-		lt := LookUpReservedWord(tc.word)
+		lt, _ := LookUpReservedWord(tc.word)
 		if lt != tc.lexType {
 			t.Errorf("tests[%d] - error looking up reserved word: expected %s, got %s.\n", i, tc.lexType, lt)
 		}

@@ -2,6 +2,7 @@ package lexer
 
 import (
 	token "Lisa/lexToken"
+	"fmt"
 )
 
 // Lexer is an instance that is responsible for taking source code as input and output the tokens that represent it.
@@ -37,50 +38,97 @@ func New(data string) *Lexer {
 // NextToken parses the input and transform it into a defined Token type.
 // The function should be called repeatedly.
 func (l *Lexer) NextToken() *token.Token {
-	var isReserved bool
 	var tok *token.Token
+	var lt token.LexicalType
+	var literal string
+	var isReserved bool
 
 	// Skip white space before analyzing.
 	l.skipWhiteSpace()
 
 	switch l.ch {
 	case '!':
-		tok = token.New(token.EXCLAMATION, string(l.ch))
+		if l.peekNextChar() == '=' {
+			lt = token.NOTEQUAL
+			ch := l.ch
+			l.readChar()
+			literal = fmt.Sprintf("%s%s", string(ch), string(l.ch))
+		} else {
+			lt = token.EXCLAMATION
+			literal = string(l.ch)
+		}
+		tok = token.New(lt, literal)
 	case '=':
-		tok = token.New(token.ASSIGN, string(l.ch))
+		if l.peekNextChar() == '=' {
+			lt = token.EQUAL
+			ch := l.ch
+			l.readChar()
+			literal = fmt.Sprintf("%s%s", string(ch), string(l.ch))
+		} else {
+			lt = token.ASSIGN
+			literal = string(l.ch)
+		}
+		tok = token.New(lt, literal)
 	case '+':
-		tok = token.New(token.PLUS, string(l.ch))
+		lt = token.PLUS
+		literal = string(l.ch)
+		tok = token.New(lt, literal)
 	case '-':
-		tok = token.New(token.MINUS, string(l.ch))
+		lt = token.MINUS
+		literal = string(l.ch)
+		tok = token.New(lt, literal)
 	case '*':
-		tok = token.New(token.ASTERISK, string(l.ch))
+		lt = token.ASTERISK
+		literal = string(l.ch)
+		tok = token.New(lt, literal)
 	case '^':
-		tok = token.New(token.CARET, string(l.ch))
+		lt = token.CARET
+		literal = string(l.ch)
+		tok = token.New(lt, literal)
 	case '/':
-		tok = token.New(token.SLASH, string(l.ch))
+		lt = token.SLASH
+		literal = string(l.ch)
+		tok = token.New(lt, literal)
 	case '<':
-		tok = token.New(token.LESSTHAN, string(l.ch))
+		lt = token.LESSTHAN
+		literal = string(l.ch)
+		tok = token.New(lt, literal)
 	case '>':
-		tok = token.New(token.GREATERTHAN, string(l.ch))
+		lt = token.GREATERTHAN
+		literal = string(l.ch)
+		tok = token.New(lt, literal)
 	case '(':
-		tok = token.New(token.LPAREN, string(l.ch))
+		lt = token.LPAREN
+		literal = string(l.ch)
+		tok = token.New(lt, literal)
 	case ')':
-		tok = token.New(token.RPAREN, string(l.ch))
+		lt = token.RPAREN
+		literal = string(l.ch)
+		tok = token.New(lt, literal)
 	case '{':
-		tok = token.New(token.LBRACE, string(l.ch))
+		lt = token.LBRACE
+		literal = string(l.ch)
+		tok = token.New(lt, literal)
 	case '}':
-		tok = token.New(token.RBRACE, string(l.ch))
+		lt = token.RBRACE
+		literal = string(l.ch)
+		tok = token.New(lt, literal)
 	case ';':
-		tok = token.New(token.SEMICOLON, string(l.ch))
+		lt = token.SEMICOLON
+		literal = string(l.ch)
+		tok = token.New(lt, literal)
 	case ',':
-		tok = token.New(token.COMMA, string(l.ch))
+		lt = token.COMMA
+		literal = string(l.ch)
+		tok = token.New(lt, literal)
 	case 0:
-		tok = token.New(token.EOF, "")
+		lt = token.EOF
+		literal = ""
+		tok = token.New(lt, literal)
 	default:
 		// Not one of the recognized characters.
 		// This is where the lexical reader encounters a letter.
 		if isLetter(l.ch) {
-			var lt token.LexicalType
 
 			// Move the pointer and get the current identifier.
 			identifier := l.readIdentifier()
@@ -180,5 +228,15 @@ func (l *Lexer) skipWhiteSpace() {
 	for ok {
 		l.readChar()
 		_, ok = white[l.ch]
+	}
+}
+
+// peekNextChar looks ahead (at location readPosition) and returns the immediate next character.
+// Returns 0 if there's nothing ahead (EOF).
+func (l *Lexer) peekNextChar() byte {
+	if l.readPosition >= len(l.input) {
+		return 0
+	} else {
+		return l.input[l.readPosition]
 	}
 }

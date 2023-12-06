@@ -6,9 +6,14 @@ import (
 	"bufio"
 	"fmt"
 	"io"
+	"sync"
 )
 
 const PROMPT = "LISA >>> "
+
+var lexerPool = sync.Pool{
+	New: func() any { return new(lexer.Lexer) },
+}
 
 func Start(in io.Reader, out io.Reader) {
 	scanner := bufio.NewScanner(in)
@@ -24,10 +29,13 @@ func Start(in io.Reader, out io.Reader) {
 		if line == "QUIT" {
 			break
 		}
-		l := lexer.New(line)
-
+		l := lexerPool.Get().(*lexer.Lexer)
+		l = lexer.New(line)
 		for tok := l.NextToken(); tok.Type != token.EOF; tok = l.NextToken() {
 			fmt.Printf("%+v\n", tok)
 		}
+
+		l.Free()
+		lexerPool.Put(l)
 	}
 }

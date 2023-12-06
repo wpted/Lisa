@@ -37,6 +37,7 @@ func New(data string) *Lexer {
 // NextToken parses the input and transform it into a defined Token type.
 // The function should be called repeatedly.
 func (l *Lexer) NextToken() *token.Token {
+	var isReserved bool
 	var tok *token.Token
 
 	// Skip white space before analyzing.
@@ -79,11 +80,13 @@ func (l *Lexer) NextToken() *token.Token {
 		// Not one of the recognized characters.
 		// This is where the lexical reader encounters a letter.
 		if isLetter(l.ch) {
+			var lt token.LexicalType
+
 			// Move the pointer and get the current identifier.
 			identifier := l.readIdentifier()
 
 			// Determine the type of the reading literal.
-			lt := token.LookUpReservedWord(identifier)
+			lt, isReserved = token.LookUpReservedWord(identifier)
 			tok = token.New(lt, identifier)
 		} else if isDigit(l.ch) {
 			number := l.readNumber()
@@ -94,7 +97,7 @@ func (l *Lexer) NextToken() *token.Token {
 	}
 
 	// After checking token, move the lexical pointer to the next position if it's a reserved word, or when type is token.IDENT, token.INT.
-	if tok.Type == token.VAR || tok.Type == token.FUNCTION || tok.Type == token.RETURN || tok.Type == token.IDENT || tok.Type == token.INT {
+	if isReserved || tok.Type == token.IDENT || tok.Type == token.INT {
 		// Early exit here is necessary since the loop for readIdentifier or readNumber jumps one step forward, thus we don't need another jump below.
 		return tok
 	} else {

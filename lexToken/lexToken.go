@@ -17,6 +17,9 @@ const (
 	TRUE     = "TRUE"
 	FALSE    = "FALSE"
 
+	EQUAL    = "EQUAL"
+	NOTEQUAL = "NOTEQUAL"
+
 	// INT is the integer type.
 	INT = "INT"
 

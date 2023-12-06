@@ -260,6 +260,58 @@ func TestLexer_NextToken(t *testing.T) {
 				{expectedType: token.EOF, expectedLiteral: ""},
 			},
 		},
+		{
+			input: `fn(a, b){
+						if (a > b) {
+							return true;
+						} else {
+							return false;
+						}
+					}`,
+			expectedParsedResults: []struct {
+				expectedType    token.LexicalType
+				expectedLiteral string
+			}{
+				// fn(a, b) {
+				{expectedType: token.FUNCTION, expectedLiteral: "fn"},
+				{expectedType: token.LPAREN, expectedLiteral: "("},
+				{expectedType: token.IDENT, expectedLiteral: "a"},
+				{expectedType: token.COMMA, expectedLiteral: ","},
+				{expectedType: token.IDENT, expectedLiteral: "b"},
+				{expectedType: token.RPAREN, expectedLiteral: ")"},
+				{expectedType: token.LBRACE, expectedLiteral: "{"},
+
+				// if (a > b) {
+				{expectedType: token.IF, expectedLiteral: "if"},
+				{expectedType: token.LPAREN, expectedLiteral: "("},
+				{expectedType: token.IDENT, expectedLiteral: "a"},
+				{expectedType: token.GREATERTHAN, expectedLiteral: ">"},
+				{expectedType: token.IDENT, expectedLiteral: "b"},
+				{expectedType: token.RPAREN, expectedLiteral: ")"},
+				{expectedType: token.LBRACE, expectedLiteral: "{"},
+
+				// return true;
+				{expectedType: token.RETURN, expectedLiteral: "return"},
+				{expectedType: token.TRUE, expectedLiteral: "true"},
+				{expectedType: token.SEMICOLON, expectedLiteral: ";"},
+
+				// } else {
+				{expectedType: token.RBRACE, expectedLiteral: "}"},
+				{expectedType: token.ELSE, expectedLiteral: "else"},
+				{expectedType: token.LBRACE, expectedLiteral: "{"},
+
+				// return false;
+				{expectedType: token.RETURN, expectedLiteral: "return"},
+				{expectedType: token.FALSE, expectedLiteral: "false"},
+				{expectedType: token.SEMICOLON, expectedLiteral: ";"},
+
+				// }
+				{expectedType: token.RBRACE, expectedLiteral: "}"},
+
+				// }
+				{expectedType: token.RBRACE, expectedLiteral: "}"},
+			},
+		},
 	}
 
 	l := new(Lexer)

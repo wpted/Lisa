@@ -240,3 +240,11 @@ func (l *Lexer) peekNextChar() byte {
 		return l.input[l.readPosition]
 	}
 }
+
+// Free initializes the lexer.
+func (l *Lexer) Free() {
+	l.input = ""
+	l.position = 0
+	l.readPosition = 0
+	l.ch = byte(rune(0))
+}

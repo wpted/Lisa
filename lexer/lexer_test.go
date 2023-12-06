@@ -227,20 +227,12 @@ func TestLexer_NextToken(t *testing.T) {
 		},
 		{
 			// even though !-/*5 doesn't make sense, the lexer still has to parse it into token and let other mechanism check if the logic is correct.
-			input: `var five = 5;
-					!-/*5^; 
+			input: `!-/*5^; 
    					5 < 10 > 5;`,
 			expectedParsedResults: []struct {
 				expectedType    token.LexicalType
 				expectedLiteral string
 			}{
-				// var five = 5;
-				{expectedType: token.VAR, expectedLiteral: "var"},
-				{expectedType: token.IDENT, expectedLiteral: "five"},
-				{expectedType: token.ASSIGN, expectedLiteral: "="},
-				{expectedType: token.INT, expectedLiteral: "5"},
-				{expectedType: token.SEMICOLON, expectedLiteral: ";"},
-
 				// !-/*5^;
 				{expectedType: token.EXCLAMATION, expectedLiteral: "!"},
 				{expectedType: token.MINUS, expectedLiteral: "-"},
@@ -310,6 +302,68 @@ func TestLexer_NextToken(t *testing.T) {
 
 				// }
 				{expectedType: token.RBRACE, expectedLiteral: "}"},
+
+				// End of file.
+				{expectedType: token.EOF, expectedLiteral: ""},
+			},
+		},
+		{
+			input: `fn(a){
+						if (a != 0) {
+							if (a == 5) {
+								return true;
+							}
+						}
+						return false;
+					}`,
+			expectedParsedResults: []struct {
+				expectedType    token.LexicalType
+				expectedLiteral string
+			}{
+				//fn(a){
+				{expectedType: token.FUNCTION, expectedLiteral: "fn"},
+				{expectedType: token.LPAREN, expectedLiteral: "("},
+				{expectedType: token.IDENT, expectedLiteral: "a"},
+				{expectedType: token.RPAREN, expectedLiteral: ")"},
+				{expectedType: token.LBRACE, expectedLiteral: "{"},
+
+				//if a != 0 {
+				{expectedType: token.IF, expectedLiteral: "if"},
+				{expectedType: token.LPAREN, expectedLiteral: "("},
+				{expectedType: token.IDENT, expectedLiteral: "a"},
+				{expectedType: token.NOTEQUAL, expectedLiteral: "!="},
+				{expectedType: token.INT, expectedLiteral: "0"},
+				{expectedType: token.RPAREN, expectedLiteral: ")"},
+				{expectedType: token.LBRACE, expectedLiteral: "{"},
+
+				//if a == 5 {
+				{expectedType: token.IF, expectedLiteral: "if"},
+				{expectedType: token.LPAREN, expectedLiteral: "("},
+				{expectedType: token.IDENT, expectedLiteral: "a"},
+				{expectedType: token.EQUAL, expectedLiteral: "=="},
+				{expectedType: token.INT, expectedLiteral: "5"},
+				{expectedType: token.RPAREN, expectedLiteral: ")"},
+				{expectedType: token.LBRACE, expectedLiteral: "{"},
+
+				//return true;
+				{expectedType: token.RETURN, expectedLiteral: "return"},
+				{expectedType: token.TRUE, expectedLiteral: "true"},
+				{expectedType: token.SEMICOLON, expectedLiteral: ";"},
+
+				//}
+				{expectedType: token.RBRACE, expectedLiteral: "}"},
+
+				//}
+				{expectedType: token.RBRACE, expectedLiteral: "}"},
+
+				//return false;
+				{expectedType: token.RETURN, expectedLiteral: "return"},
+				{expectedType: token.FALSE, expectedLiteral: "false"},
+				{expectedType: token.SEMICOLON, expectedLiteral: ";"},
+
+				//}
+				{expectedType: token.RBRACE, expectedLiteral: "}"},
+				{expectedType: token.EOF, expectedLiteral: ""},
 			},
 		},
 	}

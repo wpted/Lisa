@@ -15,16 +15,23 @@ const (
 	// INT is the integer type.
 	INT = "INT"
 
-	ASSIGN = "="
-	PLUS   = "+"
+	ASSIGN      = "="
+	PLUS        = "+"
+	MINUS       = "-"
+	EXCLAMATION = "!"
+	CARET       = "^"
+	ASTERISK    = "*"
+	SLASH       = "/"
 
 	COMMA     = ","
 	SEMICOLON = ";"
 
-	LPAREN = "("
-	RPAREN = ")"
-	LBRACE = "{"
-	RBRACE = "}"
+	LPAREN      = "("
+	RPAREN      = ")"
+	LBRACE      = "{"
+	RBRACE      = "}"
+	LESSTHAN    = "<"
+	GREATERTHAN = ">"
 )
 
 type LexicalType string
@@ -37,6 +44,7 @@ var reservedWordsTable = map[string]LexicalType{
 }
 
 // Token is the transformation result of lexing source code.
+// Tokens can be classified into three: one-character token (e.g. -), two-character token (e.g. ==), and keyword token (e.g. return)
 type Token struct {
 	Type LexicalType
 	// Literal is the parsed value of a token.

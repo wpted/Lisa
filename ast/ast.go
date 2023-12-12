@@ -47,7 +47,7 @@ type VarStatement struct {
 	// Token is the token.Var token.
 	Token *token.Token
 	// Name is the name of the variable.
-	Name *Identifier
+	Name *IdentifierExpression
 	// Value is the field that points to the expression on the right side of the equal sign.
 	Value Expression
 }
@@ -57,19 +57,59 @@ func (v *VarStatement) TokenLiteral() string { return v.Token.Literal }
 // statementNode categorizes VarStatement node as a statement node.
 func (v *VarStatement) statementNode() {}
 
-// Identifier node. In the context of a programming language's abstract syntax tree (AST),
+// ReturnStatement consists of solely the keyword 'return' and an expression.
+type ReturnStatement struct {
+	Token       *token.Token
+	ReturnValue Expression
+}
+
+func (r *ReturnStatement) TokenLiteral() string { return r.Token.Literal }
+
+// statementNode categorizes ReturnStatement node as a statement node.
+func (r *ReturnStatement) statementNode() {}
+
+// ExpressionStatement indicates the statement consists solely of one expression.
+type ExpressionStatement struct {
+	Token      *token.Token
+	Expression Expression
+}
+
+func (e *ExpressionStatement) TokenLiteral() string { return e.Token.Literal }
+
+func (e *ExpressionStatement) statementNode() {}
+
+// IdentifierExpression node. In the context of a programming language's abstract syntax tree (AST),
 // an identifier is typically associated with a declaration or a statement node.
 // This is because an identifier is often used to name and reference variables, functions, or other program entities,
 // and these entities are typically introduced or declared through statements.
-type Identifier struct {
+type IdentifierExpression struct {
 	Token *token.Token
 	Value string
 }
 
-func (i *Identifier) TokenLiteral() string {
+func (i *IdentifierExpression) TokenLiteral() string {
 	// Return the parsed literal from the token.
 	return i.Token.Literal
 }
 
 // expressionNode categorizes Identifier as an expression node.
-func (i *Identifier) expressionNode() {}
+func (i *IdentifierExpression) expressionNode() {}
+
+type BooleanExpression struct {
+	Token *token.Token
+	Value bool
+}
+
+func (b *BooleanExpression) expressionNode() {}
+func (b *BooleanExpression) TokenLiteral() string {
+	return b.Token.Literal
+}
+
+type IfExpression struct {
+	Token *token.Token
+}
+
+func (i *IfExpression) expressionNode() {}
+func (i *IfExpression) TokenLiteral() string {
+	return i.Token.Literal
+}

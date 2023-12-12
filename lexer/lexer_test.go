@@ -372,7 +372,7 @@ func TestLexer_NextToken(t *testing.T) {
 	for i, tt := range tokenTests {
 		l = New(tt.input)
 		for tokenIdx, pr := range tt.expectedParsedResults {
-			tok := l.NextToken()
+			tok := l.ReadNextToken()
 			if tok.Type != pr.expectedType {
 				// %q is a single-quoted character literal safely escaped with Go syntax.
 				t.Errorf("tests[%d], token[%d] - error token type: expected %q, got %q.\n", i, tokenIdx, pr.expectedType, tok.Type)

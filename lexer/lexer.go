@@ -35,9 +35,9 @@ func New(data string) *Lexer {
 	return newLexer
 }
 
-// NextToken parses the input and transform it into a defined Token type.
+// ReadNextToken parses the input and transform it into a defined Token type.
 // The function should be called repeatedly.
-func (l *Lexer) NextToken() *token.Token {
+func (l *Lexer) ReadNextToken() *token.Token {
 	var tok *token.Token
 	var lt token.LexicalType
 	var literal string

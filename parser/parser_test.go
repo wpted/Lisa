@@ -49,7 +49,7 @@ func TestParser_ParseProgram(t *testing.T) {
 				t.Errorf("Error token literal: expected '%s', got '%s'.\n", expectedIdentifier[i], varStmt.Name.Value)
 			}
 
-			// TODO: 2. Check the Value expression.
+			// 2. TODO: Check the Value of the expression.
 		}
 	})
 
@@ -72,6 +72,33 @@ func TestParser_ParseProgram(t *testing.T) {
 
 		if len(p.errors) != 3 {
 			t.Errorf("Error length of expected errors, expected %d, got %d.", 3, len(p.errors))
+		}
+	})
+
+	t.Run("Correct 'Return' statements", func(t *testing.T) {
+		input := `return 5;
+			      return 10;`
+
+		l := lexer.New(input)
+		p := New(l)
+		astRoot := p.ParseProgram()
+		if astRoot == nil {
+			t.Errorf("Error parsing program - nil program root.\n")
+		}
+
+		if len(astRoot.Statements) != 2 {
+			t.Errorf("Error statement length for program root: expected %d, got %d.", 3, len(astRoot.Statements))
+		}
+
+		for _, stmt := range astRoot.Statements {
+			if stmt.TokenLiteral() != "return" {
+				t.Errorf("Error s.TokenLiteral: expected %q, got %q.\n", "return", stmt.TokenLiteral())
+			}
+
+			_, ok := stmt.(*ast.ReturnStatement)
+			if !ok {
+				t.Errorf("Error statement type: expected *ast.ReturnStatement, got %T.\n", stmt)
+			}
 		}
 	})
 }

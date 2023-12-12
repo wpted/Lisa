@@ -31,7 +31,7 @@ func Start(in io.Reader, out io.Reader) {
 		}
 		l := lexerPool.Get().(*lexer.Lexer)
 		l = lexer.New(line)
-		for tok := l.NextToken(); tok.Type != token.EOF; tok = l.NextToken() {
+		for tok := l.ReadNextToken(); tok.Type != token.EOF; tok = l.ReadNextToken() {
 			fmt.Printf("%+v\n", tok)
 		}
 

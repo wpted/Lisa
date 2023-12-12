@@ -6,6 +6,7 @@ import (
 
 // Node is the base element of an AST tree.
 type Node interface {
+	// TokenLiteral is the literal of the parsed node.
 	TokenLiteral() string
 }
 
@@ -43,15 +44,18 @@ func (p *ProgramRoot) TokenLiteral() string {
 
 // VarStatement node. Should hold the Name of the identifier, the value for the expression, and its own Token.
 type VarStatement struct {
+	// Token is the token.Var token.
 	Token *token.Token
-	Name  *Identifier
+	// Name is the name of the variable.
+	Name *Identifier
+	// Value is the field that points to the expression on the right side of the equal sign.
 	Value Expression
 }
 
 func (v *VarStatement) TokenLiteral() string { return v.Token.Literal }
 
-// expressionNode is categorizes VarStatement node as an expression node.
-func (v *VarStatement) expressionNode() {}
+// statementNode categorizes VarStatement node as a statement node.
+func (v *VarStatement) statementNode() {}
 
 // Identifier node. In the context of a programming language's abstract syntax tree (AST),
 // an identifier is typically associated with a declaration or a statement node.
@@ -62,8 +66,10 @@ type Identifier struct {
 	Value string
 }
 
-func (i *Identifier) expressionNode() {}
 func (i *Identifier) TokenLiteral() string {
 	// Return the parsed literal from the token.
 	return i.Token.Literal
 }
+
+// expressionNode categorizes Identifier as an expression node.
+func (i *Identifier) expressionNode() {}

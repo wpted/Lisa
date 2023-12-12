@@ -29,7 +29,7 @@ type Expression interface {
 
 // ProgramRoot is the root node of every AST our parser produces.
 type ProgramRoot struct {
-	// Statements stores the series of statements that is contained in our program.
+	// Statements stores a series of statements (which is an interface, any node that fits Statement counts.) that is contained in our program.
 	Statements []Statement
 }
 

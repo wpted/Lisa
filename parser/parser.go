@@ -85,16 +85,17 @@ func (p *Parser) parseStatement() ast.Statement {
 	switch p.curToken.Type {
 	case token.VAR:
 		return p.parseVarStatement()
-	//case token.RETURN:
+	case token.RETURN:
+		return p.parseReturnStatement()
 	default:
 		return nil
 	}
 }
 
-// parseVarStatement parses a statement that starts with 'var' and ends with ';'.
+// parseVarStatement parses a statement that starts with 'var' and ends with ';', (e.g 'var x = 5;').
 // If there's any elements missing from a standard 'var x = 5;' statement, the parser stores all the error in errors and returns a nil ast.VarStatement.
 func (p *Parser) parseVarStatement() *ast.VarStatement {
-	invalidStmt := false
+	var stmtInvalid bool
 
 	// When parsing 'var x = 5;'
 
@@ -106,7 +107,7 @@ func (p *Parser) parseVarStatement() *ast.VarStatement {
 	if !p.expectNext(token.IDENT) {
 		// Not an expected Identifier, store the error.
 		p.storeNextTokenTypeError(token.IDENT)
-		invalidStmt = true
+		stmtInvalid = true
 		// Since we're missing the identifier, we expect the next token type to be a type token.ASSIGN.
 	}
 
@@ -122,21 +123,48 @@ func (p *Parser) parseVarStatement() *ast.VarStatement {
 	// If the token is an expected type, advance the token pointer.
 	if !p.expectNext(token.ASSIGN) {
 		p.storeNextTokenTypeError(token.ASSIGN)
-		invalidStmt = true
+		stmtInvalid = true
 	}
 
-	// 4. Check and assign the expression to stmt.Value.
+	// 4. TODO: Check and assign the expression to stmt.Value.
 	p.readNextToken()
 
 	// 5. Check the semicolon at the end of a var statement.
 	if !p.expectNext(token.SEMICOLON) {
 		// Not an expected Identifier, store the error.
 		p.storeNextTokenTypeError(token.SEMICOLON)
-		invalidStmt = true
+		stmtInvalid = true
 	}
 
 	// After reached a supposed ';' position return the parsed statement, check whether the statement is valid.
-	if invalidStmt {
+	if stmtInvalid {
+		return nil
+	}
+	return stmt
+}
+
+// parseReturnStatement parses a statement that starts with a 'return' and ends with a ';', (e.g 'return 5;').
+// If there's any elements missing from a standard 'return 5;' statement, the parser stores all the error in errors and returns a nil ast.ReturnStatement.
+func (p *Parser) parseReturnStatement() *ast.ReturnStatement {
+	var stmtInvalid bool
+
+	// 1. Assign currentToken 'return' to p.curToken.
+	stmt := &ast.ReturnStatement{
+		Token:       p.curToken,
+		ReturnValue: nil,
+	}
+
+	// 2. TODO: Check and assign the expression of the value of return.
+	p.readNextToken()
+
+	// 3. Check the semicolon at the end of a return statement.
+	if !p.expectNext(token.SEMICOLON) {
+		p.storeNextTokenTypeError(token.SEMICOLON)
+		stmtInvalid = true
+	}
+
+	// After reached a supposed ';' position return the parsed statement, check whether the statement is valid.
+	if stmtInvalid {
 		return nil
 	}
 	return stmt
@@ -167,9 +195,6 @@ func (p *Parser) storeNextTokenTypeError(expectType token.LexicalType) {
 	p.errors = append(p.errors, errMsg)
 }
 
-//func (p *Parser) parseReturnStatement() *ast.ReturnStatement {
-//	return nil
-//}
 //
 //func (p *Parser) parseExpression() ast.Expression {
 //	return nil

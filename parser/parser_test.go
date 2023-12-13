@@ -6,7 +6,7 @@ import (
 	"testing"
 )
 
-func TestParser_ParseProgram(t *testing.T) {
+func TestParser_ParseStatement(t *testing.T) {
 	t.Run("Correct 'Var' statements", func(t *testing.T) {
 		input := `var x = 5;
 			      var y = 10;
@@ -101,4 +101,71 @@ func TestParser_ParseProgram(t *testing.T) {
 			}
 		}
 	})
+
+	t.Run("Incorrect 'Return' statements", func(t *testing.T) {
+		input := `return ;
+			      return 10`
+
+		l := lexer.New(input)
+		p := New(l)
+		astRoot := p.ParseProgram()
+		if astRoot == nil {
+			t.Errorf("Error parsing program - nil program root.\n")
+		}
+
+		if len(astRoot.Statements) != 2 {
+			t.Errorf("Error statement length for program root: expected %d, got %d.", 2, len(astRoot.Statements))
+		}
+		if len(p.errors) != 2 {
+			t.Errorf("Error length of expected errors, expected %d, got %d.", 2, len(p.errors))
+		}
+	})
+}
+
+func TestParser_ParseExpression(t *testing.T) {
+	t.Run("Test Expression - Identifiers", func(t *testing.T) {
+		input := "foobar;"
+		l := lexer.New(input)
+		p := New(l)
+		astRoot := p.ParseProgram()
+		if len(astRoot.Statements) != 1 {
+			t.Errorf("Error statement length for program root: expected %d, got %d.", 1, len(astRoot.Statements))
+		}
+
+		if len(astRoot.Statements) > 0 {
+			// Check if a statement in the parsed statements is an *ast.ExpressionStatement.
+			stmt, ok := astRoot.Statements[0].(*ast.ExpressionStatement)
+			if !ok {
+				t.Errorf("Error statement type: expected *ast.ExpressionStatement, got %T", stmt)
+			} else {
+				// If a statement is not an *ast.ExpressionStatement type, calling Expression field will lead to runtime panic.
+				// Check if expression in the Expression field is an *ast.IdentifierExpression.
+				ident, ok := stmt.Expression.(*ast.IdentifierExpression)
+				if !ok {
+					t.Errorf("Error expression type: expected *ast.IdentifierExpression, got %T", ident)
+				} else {
+					if ident.Value != "foobar" {
+						t.Errorf("Error expression value in Identifier: expected %s, got %s.", "foobar", ident.Value)
+					}
+
+					if ident.TokenLiteral() != "foobar" {
+						t.Errorf("Error expression TokenLiteral() in Identifier: expected %s, got %s.", "foobar", ident.Value)
+					}
+				}
+			}
+		}
+	})
+
+	t.Run("Test Expression - Integer Literals", func(t *testing.T) {
+
+	})
+
+	t.Run("Test Expression - Prefix Operators", func(t *testing.T) {
+
+	})
+
+	t.Run("Test Expression - Infix Operators", func(t *testing.T) {
+
+	})
+
 }

@@ -173,15 +173,15 @@ func TestParser_ParseExpression(t *testing.T) {
             } else {
                 // If a statement is not an *ast.ExpressionStatement type, calling Expression field will lead to runtime panic.
                 // Check if expression in the Expression field is an *ast.IdentifierExpression.
-                ident, ok := stmt.Expression.(*ast.IntegerLiteralExpression)
+                intLitExp, ok := stmt.Expression.(*ast.IntegerLiteralExpression)
                 if !ok {
-                    t.Errorf("Error expression type: expected *ast.IdentifierExpression, got %T", ident)
+                    t.Errorf("Error expression type: expected *ast.IdentifierExpression, got %T", intLitExp)
                 } else {
-                    if ident.Value != int64(5) {
-                        t.Errorf("Error expression value in Identifier: expected %d, got %d.", int64(5), ident.Value)
+                    if intLitExp.Value != int64(5) {
+                        t.Errorf("Error expression value in Identifier: expected %d, got %d.", int64(5), intLitExp.Value)
                     }
 
-                    if ident.TokenLiteral() != "5" {
+                    if intLitExp.TokenLiteral() != "5" {
                         t.Errorf("Error expression TokenLiteral() in Identifier: expected %s, got %s.", "5", "5")
                     }
                 }

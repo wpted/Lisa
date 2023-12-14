@@ -95,6 +95,17 @@ func (i *IdentifierExpression) TokenLiteral() string {
 // expressionNode categorizes Identifier as an expression node.
 func (i *IdentifierExpression) expressionNode() {}
 
+// IntegerLiteralExpression is 
+type IntegerLiteralExpression struct {
+	Token *token.Token
+	Value int64
+}
+
+func (i *IntegerLiteralExpression) expressionNode() {}
+func (i *IntegerLiteralExpression) TokenLiteral() string {
+	return i.Token.Literal
+}
+
 type BooleanExpression struct {
 	Token *token.Token
 	Value bool

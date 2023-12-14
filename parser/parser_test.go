@@ -181,8 +181,8 @@ func TestParser_ParseExpression(t *testing.T) {
                         t.Errorf("Error expression value in Identifier: expected %d, got %d.", int64(5), ident.Value)
                     }
 
-                    if ident.TokenLiteral() != "foobar" {
-                        t.Errorf("Error expression TokenLiteral() in Identifier: expected %s, got %s.", "foobar", ident.Value)
+                    if ident.TokenLiteral() != "5" {
+                        t.Errorf("Error expression TokenLiteral() in Identifier: expected %s, got %s.", "5", "5")
                     }
                 }
             }

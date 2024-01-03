@@ -95,9 +95,11 @@ func (i *IdentifierExpression) TokenLiteral() string {
 // expressionNode categorizes Identifier as an expression node.
 func (i *IdentifierExpression) expressionNode() {}
 
-// IntegerLiteralExpression is 
+// IntegerLiteralExpression node. Any node that looks like '5;' should be categorized to this.
 type IntegerLiteralExpression struct {
 	Token *token.Token
+	// Value is the field that's going to contain the actual value the integer literal represents.
+	// When we build an IntegerLiteralExpression, we have to convert the string stored in IntegerLiteralExpression.Token.Literal to an int64.git
 	Value int64
 }
 
@@ -124,3 +126,12 @@ func (i *IfExpression) expressionNode() {}
 func (i *IfExpression) TokenLiteral() string {
 	return i.Token.Literal
 }
+
+type PrefixExpression struct {
+	Operator string
+	Token    *token.Token // The prefix token, e.g. '!' or '-'.
+    RightToken Expression // Something at the right of the prefix operator, e.g. 'isCute' in '!isCute', '5' in '-5'.
+}
+
+func (p *PrefixExpression) expressionNode()      {}
+func (p *PrefixExpression) TokenLiteral() string { return p.Token.Literal }

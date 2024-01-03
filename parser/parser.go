@@ -5,6 +5,23 @@ import (
 	token "Lisa/lexToken"
 	"Lisa/lexer"
 	"fmt"
+	"strconv"
+)
+
+const (
+	// The following is the precedence for operator orders.
+	_ int = iota
+	// LOWEST is the lowest precedence for operator orders.
+	LOWEST
+	// EQUALS is the order of a '==' operator
+	EQUALS
+	// LESSGREATER is the order of '>' or '<' operator
+	LESSGREATER
+	// SUM is the order of a '+' operator
+	SUM
+	PRODUCT
+	PREFIX
+	CALL
 )
 
 // Parser is a component that takes the input data, and builds a data structure, checking for correct syntax in the process.
@@ -20,15 +37,20 @@ type Parser struct {
 	// For example, when encounter a curToken token.INT, we need to decide to end the line(var x = 5),
 	// or it actually follows with an arithmetic expression (var y = 5 + 6;).
 	nextToken *token.Token
+
+	prefixParseFns map[token.LexicalType]prefixParseFn
+	infixParseFns  map[token.LexicalType]infixParseFn
 }
 
 // New initializes a Parser instance.
 func New(l *lexer.Lexer) *Parser {
 	p := &Parser{
-		l:         l,
-		errors:    make([]string, 0),
-		curToken:  nil,
-		nextToken: nil,
+		l:              l,
+		errors:         make([]string, 0),
+		curToken:       nil,
+		nextToken:      nil,
+		prefixParseFns: make(map[token.LexicalType]prefixParseFn),
+		infixParseFns:  make(map[token.LexicalType]infixParseFn),
 	}
 
 	// Read two tokens, so curToken and nextToken are both set.
@@ -40,19 +62,18 @@ func New(l *lexer.Lexer) *Parser {
 	p.readNextToken()
 	p.readNextToken()
 
+	// Register parser functions for parsing expressions.
+	p.registerParserFunctionForPrefix(token.IDENT, p.parseIdentifier)
+	p.registerParserFunctionForPrefix(token.INT, p.parseIntegerLiteral)
+	p.registerParserFunctionForPrefix(token.MINUS, p.parsePrefixExpression)
+	p.registerParserFunctionForPrefix(token.EXCLAMATION, p.parsePrefixExpression)
+
 	return p
 }
 
 // Errors returns all the errors occur when parsing an input with a Parser.
 func (p *Parser) Errors() []string {
 	return p.errors
-}
-
-// readNextToken helps advances the token in the lexer by 1, simultaneously setting the curToken and nextToken.
-func (p *Parser) readNextToken() {
-	p.curToken = p.nextToken
-	// Get the lexical transformation of character to token.
-	p.nextToken = p.l.ReadNextToken()
 }
 
 // ParseProgram parses the input and return a converted AST tree.
@@ -77,6 +98,13 @@ func (p *Parser) ParseProgram() *ast.ProgramRoot {
 	return astRoot
 }
 
+// readNextToken helps advances the token in the lexer by 1, simultaneously setting the curToken and nextToken.
+func (p *Parser) readNextToken() {
+	p.curToken = p.nextToken
+	// Get the lexical transformation of character to token.
+	p.nextToken = p.l.ReadNextToken()
+}
+
 // parseStatement is a helper function that checks the type of the curToken and determine what statement to return to ParseProgram.
 // parseStatement stops when reaches a ';' (type token.SEMICOLON).
 func (p *Parser) parseStatement() ast.Statement {
@@ -88,7 +116,7 @@ func (p *Parser) parseStatement() ast.Statement {
 	case token.RETURN:
 		return p.parseReturnStatement()
 	default:
-		return nil
+		return p.parseExpressionStatement()
 	}
 }
 
@@ -170,6 +198,86 @@ func (p *Parser) parseReturnStatement() *ast.ReturnStatement {
 	return stmt
 }
 
+func (p *Parser) parseExpressionStatement() *ast.ExpressionStatement {
+	var stmtInvalid bool
+	stmt := &ast.ExpressionStatement{
+		Token: p.curToken,
+	}
+	stmt.Expression = p.parseExpression(LOWEST)
+	if !p.expectNext(token.SEMICOLON) {
+		p.storeNextTokenTypeError(token.SEMICOLON)
+		stmtInvalid = true
+	}
+
+	// After reached a supposed ';' position return the parsed statement, check whether the statement is valid.
+	if stmtInvalid {
+		return nil
+	}
+	return stmt
+}
+
+func (p *Parser) parseExpression(operatorPrecedence int) ast.Expression {
+	// 1. Integer literals (5;)
+	// 2. Identifiers (foobar;) -> (PrefixParseFn)
+
+	// Fetch the parser function from the pre-registered functions.
+	parseFn := p.prefixParseFns[p.curToken.Type]
+	if parseFn != nil {
+		expression := parseFn()
+		return expression
+	}
+	// 3. Prefix Operators (-5;)
+	// 4. Infix Operators (5 * 2;)
+	// - Normal binary operators (+, -, *, /)
+	// - Comparison Operators (x >= y; x == y;)
+	// - Grouped parentheses to group and reorder evaluation (2 + (5 * 2);)
+	// 5. Function call expression (foobar();)
+	// 6. Function literals (fn(a, b){return a + b;};)
+	return nil
+}
+
+// parseIdentifier turns the current token from a parser to an *ast.IdentifierExpression, returned as an ast.Expression interface.
+// This function should be registered when starting a new parser, and should be called when parser encounter a token of type token.IDENT.
+func (p *Parser) parseIdentifier() ast.Expression {
+	return &ast.IdentifierExpression{
+		Token: p.curToken,
+		Value: p.curToken.Literal,
+	}
+}
+
+// parseIntegerLiteral turns the current token from a parser to an *ast.IntegerLiteralExpression, returned as an ast.Expression interface.
+// This function should be registered when starting a new parser, and should be called when parser encounter a token of type token.INT.
+func (p *Parser) parseIntegerLiteral() ast.Expression {
+	exp := &ast.IntegerLiteralExpression{
+		Token: p.curToken,
+	}
+
+	// Convert the token of a token literal to a int64 value.
+	value, err := strconv.Atoi(p.curToken.Literal)
+	if err != nil {
+		errMsg := fmt.Sprintf("error could not parse %q as integer", p.curToken.Literal)
+		p.storeParseTokenError(errMsg)
+		return nil
+	}
+
+	// After successfully reading from the string literal, assign the value to the integer literal expression.
+	exp.Value = int64(value)
+
+	return exp
+}
+
+func (p *Parser) parsePrefixExpression() ast.Expression {
+	exp := &ast.PrefixExpression{
+		Operator: p.curToken.Literal,
+		Token:    p.curToken,
+	}
+
+	// Advance the pointer of the lexer, now it's the token after the prefix.
+	p.readNextToken()
+	exp.RightToken = p.parseExpression(PREFIX)
+	return exp
+}
+
 // curTokenTypeIs checks whether the type of the current token is identical as the given type.
 func (p *Parser) curTokenTypeIs(expectType token.LexicalType) bool {
 	return p.curToken.Type == expectType
@@ -183,7 +291,7 @@ func (p *Parser) nextTokenTypeIs(expectType token.LexicalType) bool {
 // expectNext checks the next token type, and if the nextToken is identical as the given type, advance the pointer and return true.
 func (p *Parser) expectNext(expectType token.LexicalType) bool {
 	if p.nextTokenTypeIs(expectType) {
-		// If the token is the expected type, advance to the token.
+		// If the token is the expected type, advance to the expected token.
 		p.readNextToken()
 		return true
 	}
@@ -195,8 +303,17 @@ func (p *Parser) storeNextTokenTypeError(expectType token.LexicalType) {
 	p.errors = append(p.errors, errMsg)
 }
 
-//
-//func (p *Parser) parseExpression() ast.Expression {
-//	return nil
-//}
-//
+func (p *Parser) storeParseTokenError(errMsg string) {
+	p.errors = append(p.errors, errMsg)
+}
+
+type prefixParseFn func() ast.Expression
+type infixParseFn func(expression ast.Expression) ast.Expression
+
+func (p *Parser) registerParserFunctionForPrefix(tokenType token.LexicalType, fn prefixParseFn) {
+	p.prefixParseFns[tokenType] = fn
+}
+
+func (p *Parser) registerParserFunctionForInfix(tokenType token.LexicalType, fn infixParseFn) {
+	p.infixParseFns[tokenType] = fn
+}
